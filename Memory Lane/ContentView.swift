@@ -1,88 +1,52 @@
-//
-//  ContentView.swift
-//  Memory Lane
-//
-//  Created by Niklas Fischer on 4/4/23.
-//
-
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    @AppStorage("hasOpenedApp") var hasOpenedApp: Bool = false
+    @StateObject var memories = Memories()
+    @State private var selection: Int = 0
 
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
+        if !hasOpenedApp {
+            WelcomeView(hasOpenedApp: $hasOpenedApp)
+        } else {
+            ZStack {
+                TabView(selection: $selection) {
+                    HomeView()
+                        .tabItem {
+                            Image(systemName: "house.fill")
+                            Text("Home")
+                        }
+                        .tag(0)
+                    
+                    let memoryForToday = memories.memories.first(where: { Calendar.current.isDateInToday($0.date) })
+                    MakeMemoryView(memoryForToday: memoryForToday)
+                        .tabItem {
+                             VStack {
+                                 Image(systemName: "camera")
+                                     .resizable()
+                                     .aspectRatio(contentMode: .fit)
+                                     .frame(width: 60, height: 60)
+                                 Text("Make Memory")
+                             }
+                         }
+                         .tag(1)
+                        MemoriesView()
+                            .tabItem {
+                                Image(systemName: "list.bullet")
+                                Text("Memories")
+                            }
+                            .tag(2)
                 }
-                .onDelete(perform: deleteItems)
+                .accentColor(.white)
+                .environmentObject(memories)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        ContentView()
     }
 }
