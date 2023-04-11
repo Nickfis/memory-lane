@@ -19,7 +19,7 @@ class Memory: Identifiable, Codable {
         self.date = date
         self.mood = mood
         self.journalEntry = journalEntry
-        self.imageBase64 = image.jpegData(compressionQuality: 1.0)?.base64EncodedString() ?? ""
+        self.imageBase64 = image.jpegData(compressionQuality: 0.5)?.base64EncodedString() ?? ""
     }
 }
 

@@ -3,22 +3,23 @@ import SwiftUI
 struct ContentView: View {
     @AppStorage("hasOpenedApp") var hasOpenedApp: Bool = false
     @StateObject var memories = Memories()
-    @State private var selection: Int = 0
+    @State private var navigationIndex: Int = 0
 
     var body: some View {
         if !hasOpenedApp {
             WelcomeView(hasOpenedApp: $hasOpenedApp)
         } else {
             ZStack {
-                TabView(selection: $selection) {
-                    HomeView()
+                TabView(selection: $navigationIndex) {
+                    let memoryForToday = memories.memories.first(where: { Calendar.current.isDateInToday($0.date) })
+                    HomeView(memoryForToday: memoryForToday, navigationIndex: $navigationIndex)
                         .tabItem {
                             Image(systemName: "house.fill")
                             Text("Home")
                         }
                         .tag(0)
                     
-                    let memoryForToday = memories.memories.first(where: { Calendar.current.isDateInToday($0.date) })
+
                     MakeMemoryView(memoryForToday: memoryForToday)
                         .tabItem {
                              VStack {

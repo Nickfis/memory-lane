@@ -102,9 +102,13 @@ struct MakeMemoryView: View {
                     .cancel()
                 ])
             }
-            .sheet(isPresented: $showImagePicker, content: {
-                ImagePicker(selectedImage: $selectedImage, sourceType: sourceType)
-            })
+            .sheet(isPresented: $showImagePicker, onDismiss: {
+                if selectedImage != nil {
+                    saveMemory()
+                }
+                        }, content: {
+                            ImagePicker(selectedImage: $selectedImage, sourceType: sourceType)
+                        })
         }
     }
     
